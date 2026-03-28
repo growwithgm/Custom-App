@@ -20,9 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = Object.fromEntries(formData.entries());
 
         try {
-            // Safely construct the submit URL regardless of trailing slashes in the proxy
-            const currentPath = window.location.pathname.replace(/\/$/, '');
-            const submitUrl = `${currentPath}/submit${window.location.search}`;
+            // BULLETPROOF FIX: Send the POST request to the exact same URL we are currently on.
+            // This prevents Shopify Proxy from breaking the path with missing slashes.
+            const submitUrl = window.location.pathname + window.location.search;
 
             const response = await fetch(submitUrl, {
                 method: 'POST',

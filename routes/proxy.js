@@ -19,7 +19,6 @@ router.get('/', verifyShopifyProxy, (req, res) => {
         const js = fs.readFileSync(jsPath, 'utf8');
         
         // BULLETPROOF FIX: CSS aur JS ko direct HTML ke andar inject kar dein
-        // Is se Shopify Proxy mein loading fail hone ka koi chance nahi rahega
         html = html.replace('<link rel="stylesheet" href="/public/css/style.css">', `<style>\n${css}\n</style>`);
         html = html.replace('<script src="/public/js/app.js"></script>', `<script>\n${js}\n</script>`);
         
@@ -30,7 +29,7 @@ router.get('/', verifyShopifyProxy, (req, res) => {
     }
 });
 
-// 2. Handle API Form Submission
-router.post('/submit', verifyShopifyProxy, paymentValidationRules(), validate, paymentController.processPayment);
+// 2. Handle API Form Submission (Changed from /submit to / to avoid Shopify slash issues)
+router.post('/', verifyShopifyProxy, paymentValidationRules(), validate, paymentController.processPayment);
 
 module.exports = router;
