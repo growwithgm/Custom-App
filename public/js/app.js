@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // Send POST request relative to current proxy path, preserving Shopify query params
-            const submitUrl = `./proxy/submit${window.location.search}`;
+            const submitUrl = `./submit${window.location.search}`;
 
             const response = await fetch(submitUrl, {
                 method: 'POST',

@@ -17,7 +17,8 @@ app.set('trust proxy', 1);
 
 // Security Middleware
 app.use(helmet({
-    contentSecurityPolicy: false // Disabled to allow Shopify iframe framing (App Proxy requirement)
+  contentSecurityPolicy: false,
+  frameguard: false
 }));
 app.use(cors());
 app.use(express.json());
