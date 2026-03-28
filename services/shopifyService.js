@@ -5,13 +5,18 @@ class ShopifyService {
         const apiVersion = '2024-01';
         const baseURL = `https://${shop}/admin/api/${apiVersion}/graphql.json`;
 
-        // Split name safely
-        const nameParts = data.fullName.trim().split(' ');
-        const firstName = nameParts[0];
-        const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : 'Customer';
-
-        const customAttributes = [];
-        if (data.reference) customAttributes.push({ key: "Reference", value: data.reference });
+        // Name, Phone aur Reference ko hum line item ke custom attributes mein save karenge
+        // Taake Shopify format ka error na de aur aapko Admin mein sab details mil jayen.
+        const customAttributes = [
+            { key: "Customer Name", value: data.fullName || "Guest" }
+        ];
+        
+        if (data.reference) {
+            customAttributes.push({ key: "Reference", value: data.reference });
+        }
+        if (data.phone) {
+            customAttributes.push({ key: "Phone Number", value: data.phone });
+        }
 
         const query = `
             mutation draftOrderCreate($input: DraftOrderInput!) {
@@ -28,24 +33,20 @@ class ShopifyService {
             }
         `;
 
-        const variables = {
-            input: {
-                lineItems: [{
-                    title: "Custom Payment",
-                    originalUnitPrice: data.amount,
-                    quantity: 1,
-                    customAttributes: customAttributes
-                }],
-                customer: {
-                    firstName: firstName,
-                    lastName: lastName,
-                    email: data.email,
-                    phone: data.phone || null
-                },
-                note: data.note || "Created via Custom Payment Page",
-                useCustomerDefaultAddress: false
-            }
+        // BULLETPROOF FIX: Removed the invalid "customer" object.
+        // Bhejne ka naya aur sahi tareeqa:
+        const input = {
+            lineItems: [{
+                title: "Custom Payment",
+                originalUnitPrice: data.amount,
+                quantity: 1,
+                customAttributes: customAttributes
+            }],
+            email: data.email, // Email ko direct input mein bhej diya
+            note: data.note || "Created via Custom Payment Page"
         };
+
+        const variables = { input };
 
         try {
             const response = await axios.post(
