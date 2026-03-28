@@ -11,8 +11,12 @@ class DBService {
     }
 
     _readDB() {
-        const data = fs.readFileSync(dbPath, 'utf8');
-        return JSON.parse(data);
+        try {
+            const data = fs.readFileSync(dbPath, 'utf8');
+            return JSON.parse(data);
+        } catch(e) {
+            return {};
+        }
     }
 
     _writeDB(data) {
@@ -26,6 +30,13 @@ class DBService {
     }
 
     getShopToken(shop) {
+        // PERMANENT FIX FOR RENDER: 
+        // Read token from environment variables so it never gets deleted
+        if (process.env.SHOPIFY_PERMANENT_TOKEN) {
+            return process.env.SHOPIFY_PERMANENT_TOKEN;
+        }
+
+        // Fallback to local file
         const db = this._readDB();
         return db[shop] ? db[shop].accessToken : null;
     }

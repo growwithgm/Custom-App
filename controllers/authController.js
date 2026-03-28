@@ -42,6 +42,13 @@ exports.callback = async (req, res) => {
         });
 
         const accessToken = response.data.access_token;
+        
+        // LOG THE TOKEN SO WE CAN SAVE IT PERMANENTLY IN RENDER
+        console.log("\n=====================================");
+        console.log("🚨 YOUR SHOPIFY ACCESS TOKEN IS: 🚨");
+        console.log(accessToken);
+        console.log("=====================================\n");
+
         dbService.saveShopToken(shop, accessToken);
 
         // Redirect back to Shopify Admin
