@@ -20,8 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = Object.fromEntries(formData.entries());
 
         try {
-            // Send POST request relative to current proxy path, preserving Shopify query params
-            const submitUrl = `./submit${window.location.search}`;
+            // Safely construct the submit URL regardless of trailing slashes in the proxy
+            const currentPath = window.location.pathname.replace(/\/$/, '');
+            const submitUrl = `${currentPath}/submit${window.location.search}`;
 
             const response = await fetch(submitUrl, {
                 method: 'POST',
