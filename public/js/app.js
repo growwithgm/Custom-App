@@ -20,9 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = Object.fromEntries(formData.entries());
 
         try {
-            // BULLETPROOF FIX: Send the POST request to the exact same URL we are currently on.
-            // This prevents Shopify Proxy from breaking the path with missing slashes.
-            const submitUrl = window.location.pathname + window.location.search;
+            // Safely construct URL (taake trailing slash ka issue na aaye)
+            let basePath = window.location.pathname;
+            if (basePath.endsWith('/')) basePath = basePath.slice(0, -1);
+            const submitUrl = `${basePath}/submit${window.location.search}`;
 
             const response = await fetch(submitUrl, {
                 method: 'POST',
@@ -30,9 +31,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(data)
             });
 
+            // JSON parse karein (ab Shopify HTML page hijack nahi karega)
             const result = await response.json();
 
-            if (!response.ok) {
+            // IMPORTANT: Ab hum check kar rahe hain ke result mein error toh nahi hai
+            if (!response.ok || result.error) {
                 let errorMsg = result.error || 'Unable to process request.';
                 if (result.details && result.details.length > 0) {
                     errorMsg = result.details[0]; // Show the first validation error
@@ -44,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = result.checkoutUrl;
 
         } catch (error) {
-            // Restore UI on error
+            // Restore UI on error and show the TRUE error message
             errorAlert.textContent = error.message;
             errorAlert.style.display = 'block';
             submitBtn.disabled = false;
