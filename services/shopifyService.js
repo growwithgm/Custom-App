@@ -61,21 +61,34 @@ class ShopifyService {
 
             const responseData = response.data;
 
+            // Agar GraphQL syntax ya token ka error hai
             if (responseData.errors) {
-                throw new Error(`GraphQL Error: ${JSON.stringify(responseData.errors)}`);
+                throw new Error(`Shopify API Error: ${responseData.errors[0].message}`);
             }
 
             const { draftOrder, userErrors } = responseData.data.draftOrderCreate;
 
+            // Agar Shopify ne data reject kiya (e.g. invalid amount)
             if (userErrors && userErrors.length > 0) {
-                throw new Error(userErrors[0].message);
+                throw new Error(`Shopify rejected data: ${userErrors[0].message}`);
             }
 
             return draftOrder.invoiceUrl;
 
         } catch (error) {
             console.error('[Shopify API Error]', error.response?.data || error.message);
-            throw new Error('Failed to generate secure checkout link.');
+            
+            // Agar Token galat hai ya expire ho gaya hai
+            if (error.response && error.response.status === 401) {
+                throw new Error("Invalid Shopify Token. Please re-authenticate the app.");
+            }
+            // Agar Token sahi hai lekin permission (scopes) nahi hain
+            if (error.response && error.response.status === 403) {
+                throw new Error("Missing Scopes. Make sure 'write_draft_orders' is enabled in Shopify App settings.");
+            }
+            
+            // Asal error aage bhejein
+            throw error; 
         }
     }
 }
