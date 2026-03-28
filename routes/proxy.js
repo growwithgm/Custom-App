@@ -8,25 +8,24 @@ const verifyShopifyProxy = require('../middleware/shopifyProxy');
 
 // 1. Serve the Premium HTML Interface via App Proxy
 router.get('/', verifyShopifyProxy, (req, res) => {
-    const htmlPath = path.join(__dirname, '../public/index.html');
-    
     try {
+        const htmlPath = path.join(__dirname, '../public/index.html');
+        const cssPath = path.join(__dirname, '../public/css/style.css');
+        const jsPath = path.join(__dirname, '../public/js/app.js');
+        
+        // Teeno files ko read karein
         let html = fs.readFileSync(htmlPath, 'utf8');
+        const css = fs.readFileSync(cssPath, 'utf8');
+        const js = fs.readFileSync(jsPath, 'utf8');
         
-        // Inject absolute backend URLs so CSS and JS never fail to load via Shopify Proxy
-        const backendUrl = process.env.SHOPIFY_APP_URL || '';
-        
-        // Replace relative paths with absolute Render paths
-        html = html.replace(/href="\/public/g, `href="${backendUrl}/public`);
-        html = html.replace(/src="\/public/g, `src="${backendUrl}/public`);
-        
-        // Cleanup fallback paths just in case
-        html = html.replace(/href="proxy\/public/g, `href="${backendUrl}/public`);
-        html = html.replace(/src="proxy\/public/g, `src="${backendUrl}/public`);
+        // BULLETPROOF FIX: CSS aur JS ko direct HTML ke andar inject kar dein
+        // Is se Shopify Proxy mein loading fail hone ka koi chance nahi rahega
+        html = html.replace('<link rel="stylesheet" href="/public/css/style.css">', `<style>\n${css}\n</style>`);
+        html = html.replace('<script src="/public/js/app.js"></script>', `<script>\n${js}\n</script>`);
         
         res.send(html);
     } catch (error) {
-        console.error("Error reading index.html:", error);
+        console.error("Error reading frontend files:", error);
         res.status(500).send("Error loading payment form.");
     }
 });
