@@ -19,14 +19,14 @@
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background-color: var(--bg-color);
+    background-color: transparent !important; /* Make background transparent for iframe */
     color: var(--text-main);
     margin: 0;
     padding: 0;
     display: flex;
     justify-content: center;
-    align-items: center;
-    min-height: 100vh;
+    align-items: flex-start; /* Push to top instead of center */
+    padding-top: 20px; /* Give it a little breathing room at the top */
     -webkit-font-smoothing: antialiased;
 }
 
