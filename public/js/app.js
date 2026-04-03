@@ -12,15 +12,15 @@ document.addEventListener('DOMContentLoaded', () => {
         errorAlert.style.display = 'none';
         errorAlert.textContent = '';
         submitBtn.disabled = true;
-        btnText.style.display = 'none';
-        spinner.style.display = 'block';
+        if(btnText) btnText.style.display = 'none';
+        if(spinner) spinner.style.display = 'block';
 
         // Collect Form Data
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
 
         try {
-            // Safely construct URL (taake trailing slash ka issue na aaye)
+            // Safely construct URL
             let basePath = window.location.pathname;
             if (basePath.endsWith('/')) basePath = basePath.slice(0, -1);
             const submitUrl = `${basePath}/submit${window.location.search}`;
@@ -31,10 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(data)
             });
 
-            // JSON parse karein (ab Shopify HTML page hijack nahi karega)
+            // JSON parse karein
             const result = await response.json();
 
-            // IMPORTANT: Ab hum check kar rahe hain ke result mein error toh nahi hai
             if (!response.ok || result.error) {
                 let errorMsg = result.error || 'Unable to process request.';
                 if (result.details && result.details.length > 0) {
@@ -43,16 +42,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(errorMsg);
             }
 
-            // SUCCESS! Instant redirect to Shopify native checkout
-            window.location.href = result.checkoutUrl;
+            // 🔥 BULLETPROOF FIX FOR IFRAMES 🔥
+            // window.location ki jagah window.top.location use kiya hai
+            // Taake iframe ke andar nahi, balke poora browser tab redirect ho
+            window.top.location.href = result.checkoutUrl;
 
         } catch (error) {
-            // Restore UI on error and show the TRUE error message
+            // Restore UI on error
             errorAlert.textContent = error.message;
-            errorAlert.style.display = 'block';
+            errorAlert.style.display = 'flex';
             submitBtn.disabled = false;
-            btnText.style.display = 'block';
-            spinner.style.display = 'none';
+            if(btnText) btnText.style.display = 'block';
+            if(spinner) spinner.style.display = 'none';
         }
     });
 });
